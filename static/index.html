@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>kernel98scan</title>
+<meta name="description" content="Check whether a Linux host is exposed to CVE-2026-98432, the use-after-free in the kernel's IPv4 TCP connection setup. The real check runs on the host - this page shows you how.">
+<meta name="robots" content="index, nofollow">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="stylesheet" href="/style.css">
+<script src="/app.js" defer></script>
+<script src="/trust.js" defer></script>
+</head>
+<body>
+<main>
+  <nav class="topbar" aria-label="Site">
+    <a class="back" href="https://shouldipanic.ch">← shouldipanic.ch</a>
+    <div class="nav-links">
+      <a class="btn-coffee" href="https://github.com/sponsors/akaihigurashi" rel="noopener" aria-label="Buy me a coffee"><svg aria-hidden="true" viewBox="0 0 24 24" width="18" height="18"><path d="M4 9h12v5a5 5 0 0 1-5 5H9a5 5 0 0 1-5-5V9Z M16 10h1.5a2.5 2.5 0 0 1 0 5H16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path class="steam" d="M8 3.5c0 1 1 1.5 1 2.5 M12 3.5c0 1 1 1.5 1 2.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg><span>Buy me a coffee</span></a>
+      <a class="gh" href="https://github.com/akaihigurashi/kernel98scan" rel="noopener">
+        <svg viewBox="0 0 16 16" width="18" height="18" aria-hidden="true" focusable="false"><path fill="currentColor" d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.01 8.01 0 0 0 16 8c0-4.42-3.58-8-8-8Z"/></svg>
+        <span>Source on GitHub</span>
+      </a>
+    </div>
+  </nav>
+
+  <header class="intro">
+    <div class="brand">
+      <svg class="chip" role="img" aria-label="A CPU chip" viewBox="0 0 96 96" width="88" height="88">
+        <g class="chip-pins">
+          <path d="M30 12v-8M48 12v-8M66 12v-8M30 92v-8M48 92v-8M66 92v-8M12 30h-8M12 48h-8M12 66h-8M92 30h-8M92 48h-8M92 66h-8"/>
+        </g>
+        <rect x="16" y="16" width="64" height="64" rx="8" class="chip-body"/>
+        <rect x="30" y="30" width="36" height="36" rx="4" class="chip-core"/>
+        <path d="M38 40h20M38 48h20M38 56h14" class="chip-lines"/>
+      </svg>
+      <a class="wordmark" href="/" aria-label="kernel98scan home"><span>kernel</span><span class="wm-2">98</span><span class="wm-scan">scan</span></a>
+    </div>
+    <h1>Is this host exposed to the kernel TCP bug?</h1>
+    <p class="lede"><a href="https://nvd.nist.gov/vuln/detail/CVE-2026-98432" rel="noopener">CVE-2026-98432</a>
+      is a use-after-free in the Linux kernel's IPv4 TCP handshake, in every kernel since 4.4. An
+      attacker who can reach any open port may crash the server, and a working remote root exploit
+      has been reported. From the network a patched and an unpatched kernel look the same, so this
+      page shows which Linux distribution a server reveals and whether that distribution has a fixed
+      kernel yet. The real answer comes from the server itself.</p>
+  </header>
+
+  <form id="check" novalidate>
+    <label for="host" class="field-label">Host address</label>
+    <div class="field-row">
+      <input id="host" name="host" type="text" inputmode="url" autocomplete="url"
+             autocapitalize="off" spellcheck="false" placeholder="host.example.ch" required>
+      <button type="submit" id="go">Check host</button>
+    </div>
+    <label class="consent">
+      <input type="checkbox" id="consent" required>
+      <span>I own this host or have the owner's permission to have it checked.</span>
+    </label>
+    <p class="fineprint">The check loads the host's start page the same way a browser does.
+      Nothing else is sent.</p>
+  </form>
+
+  <section id="result" aria-live="polite" tabindex="-1" hidden></section>
+
+  <section class="yourself" aria-labelledby="self-h">
+    <div>
+      <h2 id="self-h">The real check runs on the host.</h2>
+      <p>From outside, nobody can tell a patched kernel from an unpatched one. The command-line
+        version reads the running kernel on the machine itself and gives a real verdict:
+        vulnerable, reboot needed or fixed. From outside it also does whole IP ranges, a port scan
+        and every website on the same server. One Python file, nothing to install.</p>
+    </div>
+    <pre><span class="c"># on the host you want to check:</span>
+curl -LO https://github.com/akaihigurashi/kernel98scan/releases/latest/download/kernel98scan.py
+python3 kernel98scan.py --on-host
+
+<span class="c"># or from outside (distribution only):</span>
+python3 kernel98scan.py <span id="cli-target">203.0.113.0/24</span>
+
+<span class="c"># only check systems you're allowed to test</span></pre>
+  </section>
+
+  <footer>
+    <h2>How it works</h2>
+    <p>We load the host's start page and read the <code>Server</code> header to tell which Linux
+      distribution it is, then show whether that distribution has released a fixed kernel. We never
+      try to trigger the bug.</p>
+    <h2>Why it never says "vulnerable" or "patched"</h2>
+    <p>The kernel can't be seen from the network. The banner shows the web server's distribution,
+      and behind a reverse proxy or inside a container the kernel belongs to another machine. So the
+      most this page can say is "possibly vulnerable": no fixed kernel exists yet, or one exists and
+      you have to install it and reboot. <code>--on-host</code> on the server is the final word.</p>
+    <h2>Rules of use</h2>
+    <p>Only check hosts you own or have permission to check.</p>
+    <h2>Privacy</h2>
+    <p>For every check we store the time, your IP address, your browser's name and the checked
+      address, to prevent and investigate abuse. These records are deleted after 30 days,
+      unless they are needed to report or investigate a specific case of misuse.
+      No cookies, no tracking, no third-party content.</p>
+<!--OPERATOR-->
+    <p class="family">kernel98scan is part of <a href="https://shouldipanic.ch">shouldipanic.ch</a>,
+      open-source checks for current web vulnerabilities.</p>
+  </footer>
+
+  <aside class="why" aria-labelledby="why-h">
+    <svg class="chip small" role="img" aria-label="A CPU chip" viewBox="0 0 96 96" width="76" height="76">
+      <g class="chip-pins">
+        <path d="M30 12v-8M48 12v-8M66 12v-8M30 92v-8M48 92v-8M66 92v-8M12 30h-8M12 48h-8M12 66h-8M92 30h-8M92 48h-8M92 66h-8"/>
+      </g>
+      <rect x="16" y="16" width="64" height="64" rx="8" class="chip-body"/>
+      <rect x="30" y="30" width="36" height="36" rx="4" class="chip-core"/>
+      <path d="M38 40h20M38 48h20M38 56h14" class="chip-lines"/>
+    </svg>
+    <div>
+      <h2 id="why-h">Why 98?</h2>
+      <p>The bug is <em>CVE-2026-98432</em>, a use-after-free deep in the kernel's TCP code. We took
+        the 98 and gave the scanner a little silicon of its own. The real work, as ever, happens in
+        the kernel.</p>
+    </div>
+  </aside>
+</main>
+</body>
+</html>

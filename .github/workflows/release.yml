@@ -1,0 +1,27 @@
+# On a version tag (v1.2.3): publish a GitHub release with the single-file scanner
+# attached, so it can be downloaded directly:
+#   curl -LO https://github.com/akaihigurashi/kernel98scan/releases/latest/download/kernel98scan.py
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the scanner runs
+        run: |
+          python3 kernel98scan.py --version
+          python3 -c "import ast,sys; ast.parse(open('kernel98scan.py').read())"
+
+      - name: Create release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" kernel98scan.py --title "kernel98scan $GITHUB_REF_NAME" --generate-notes
